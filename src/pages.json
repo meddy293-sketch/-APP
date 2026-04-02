@@ -1,0 +1,66 @@
+{
+  "pages": [
+    {
+      "path": "pages/welcome/index",
+      "style": {
+        "navigationBarTitleText": "本地人"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "手机号登录"
+      }
+    },
+    {
+      "path": "pages/city/index",
+      "style": {
+        "navigationBarTitleText": "选择城市"
+      }
+    },
+    {
+      "path": "pages/map/index",
+      "style": {
+        "navigationBarTitleText": "长沙"
+      }
+    },
+    {
+      "path": "pages/create/index",
+      "style": {
+        "navigationBarTitleText": "发布推荐"
+      }
+    },
+    {
+      "path": "pages/cards/index",
+      "style": {
+        "navigationBarTitleText": "卡片推荐"
+      }
+    }
+  ],
+  "tabBar": {
+    "color": "#8A8F98",
+    "selectedColor": "#111827",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/map/index",
+        "text": "地图"
+      },
+      {
+        "pagePath": "pages/create/index",
+        "text": "+"
+      },
+      {
+        "pagePath": "pages/cards/index",
+        "text": "卡片"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "本地人",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f7f7f8"
+  }
+}

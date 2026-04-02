@@ -1,0 +1,21 @@
+{
+  "name": "本地人",
+  "appid": "__UNI__BENDIREN",
+  "description": "本地人 App V0",
+  "versionName": "0.1.0",
+  "versionCode": "101",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  },
+  "h5": {
+    "title": "本地人"
+  }
+}

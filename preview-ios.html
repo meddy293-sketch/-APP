@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>本地人 — iOS Preview</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:#111;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;color:#1C1C1E}
+input,select,button,textarea{font-family:inherit;font-size:inherit}
+img{display:block;max-width:100%}
+::-webkit-scrollbar{width:0;height:0}
+:root{--red:#E8453C;--blue:#007AFF;--bg:#F2F2F7;--card:#FFF;--sep:rgba(60,60,67,.12);--label:#8E8E93;--text:#1C1C1E;--text2:#3C3C43;--r:13px}
+
+.screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:12px;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e)}
+.phone{width:100%;max-width:393px;height:min(852px,96vh);border-radius:44px;background:var(--bg);box-shadow:0 0 0 3px #2a2a3e,0 24px 80px rgba(0,0,0,.45);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.sb{flex-shrink:0;height:54px;padding:14px 30px 0;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;letter-spacing:.02em}
+.sb-icons{display:flex;gap:5px;align-items:center}
+.page-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;transition:opacity .18s,transform .18s}
+.page-wrap.exit{opacity:0;transform:translateY(6px) scale(.98)}
+.pg{flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+
+/* WELCOME */
+.w-pg{align-items:center;justify-content:center;text-align:center;padding:40px 32px 36px;background:linear-gradient(180deg,#FFF5F5 0%,var(--bg) 50%)}
+.w-sp{flex:1}
+.w-icon{margin-bottom:28px}
+.w-t{font-size:30px;font-weight:750;line-height:1.22;letter-spacing:-.03em}
+.w-t span{display:block}
+.w-sub{margin:12px 0 0;font-size:15px;color:var(--label)}
+.w-hint{margin:16px 0 0;font-size:11px;color:#AEAEB2}
+.w-ref-tag{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:99px;background:rgba(232,69,60,.1);color:var(--red);font-size:13px;font-weight:600;margin-bottom:20px}
+.btn-hero{width:100%;max-width:300px;padding:16px 24px;border:0;border-radius:14px;background:var(--red);color:#fff;font-size:17px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(232,69,60,.35);transition:transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
+.btn-hero:active{transform:scale(.97);box-shadow:0 3px 10px rgba(232,69,60,.25)}
+.ai{opacity:0;animation:si .5s cubic-bezier(.25,.46,.45,.94) forwards}
+.a1{animation-delay:.05s}.a2{animation-delay:.15s}.a3{animation-delay:.25s}.a4{animation-delay:.35s}.a5{animation-delay:.45s}.a6{animation-delay:.55s}
+@keyframes si{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* DEMO SWIPE (pre-login) */
+.demo-pg{background:var(--bg);position:relative}
+.demo-header{padding:10px 22px 6px;flex-shrink:0}
+.demo-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:99px;background:rgba(232,69,60,.1);color:var(--red);font-size:11px;font-weight:600;margin-bottom:8px}
+.demo-title{margin:0;font-size:26px;font-weight:740;letter-spacing:-.025em;line-height:1.2}
+.demo-sub{margin:6px 0 0;font-size:13px;color:var(--label);line-height:1.4}
+.demo-counter{position:absolute;top:10px;right:22px;font-size:12px;color:var(--label);font-weight:600;z-index:20}
+
+/* HOOK WALL */
+.hw-pg{align-items:center;justify-content:center;text-align:center;padding:40px 28px 36px;background:linear-gradient(180deg,#FFF5F5 0%,#FDF2F2 30%,var(--bg) 70%)}
+.hw-emoji{font-size:56px;margin-bottom:16px}
+.hw-t{font-size:26px;font-weight:740;letter-spacing:-.025em;line-height:1.25}
+.hw-sub{margin:12px 0 0;font-size:15px;color:var(--text2);line-height:1.55}
+.hw-stats{display:flex;gap:24px;margin:24px 0;justify-content:center}
+.hw-stat{display:flex;flex-direction:column;align-items:center}
+.hw-stat-n{font-size:24px;font-weight:750;color:var(--red)}
+.hw-stat-l{font-size:11px;color:var(--label);margin-top:2px}
+.hw-btns{width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px}
+.btn-hero-sm{width:100%;padding:14px 20px;border:0;border-radius:13px;background:var(--red);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(232,69,60,.3);transition:transform .12s;-webkit-tap-highlight-color:transparent}
+.btn-hero-sm:active{transform:scale(.97)}
+.btn-skip{width:100%;padding:12px 20px;border:0;border-radius:13px;background:transparent;color:var(--label);font-size:14px;font-weight:500;cursor:pointer}
+
+/* FORM PAGES */
+.f-pg{background:var(--bg)}
+.nav{flex-shrink:0;display:flex;align-items:center;height:44px;padding:0 16px}
+.nav-bk{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;background:0;color:var(--red);cursor:pointer;padding:0;margin-left:-6px}
+.nav-t{flex:1;text-align:center;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.nav-sp{width:36px}
+.f-body{flex:1;padding:4px 20px 32px;overflow-y:auto}
+.f-h{margin:0;font-size:28px;font-weight:740;letter-spacing:-.025em}
+.f-sub{margin:6px 0 20px;font-size:15px;color:var(--label)}
+.fg{background:var(--card);border-radius:var(--r);margin-bottom:20px;overflow:hidden}
+.ff{display:flex;align-items:center;min-height:46px;padding:0 16px}
+.fd{height:1px;margin-left:16px;background:var(--sep)}
+.ff-ic{flex-shrink:0;width:30px;display:flex;align-items:center;justify-content:center;color:var(--label)}
+.ff-lb{flex-shrink:0;width:60px;font-size:15px;color:var(--text)}
+.ff-in{flex:1;border:0;background:0;outline:0;font-size:15px;color:var(--text);height:46px;padding:0 4px}
+.ff-in::placeholder{color:#C7C7CC}
+.ff-sel{flex:1;border:0;background:0;outline:0;font-size:15px;color:var(--text);height:46px;appearance:none;-webkit-appearance:none}
+.sms-b{flex-shrink:0;border:0;background:0;color:var(--red);font-size:14px;font-weight:500;cursor:pointer;padding:4px 0}
+.btn-p{width:100%;padding:15px 16px;border:0;border-radius:13px;background:var(--red);color:#fff;font-size:17px;font-weight:600;cursor:pointer;transition:opacity .12s,transform .12s;-webkit-tap-highlight-color:transparent}
+.btn-p:active{transform:scale(.98)}
+.btn-p.dis{opacity:.35;pointer-events:none}
+.btn-g{width:100%;padding:14px 16px;margin-top:10px;border:0;border-radius:13px;background:0;color:var(--red);font-size:15px;font-weight:500;cursor:pointer}
+.sp{display:flex;gap:8px;margin-bottom:16px}
+.sp-i{padding:5px 12px;border-radius:99px;font-size:12px;font-weight:600;background:rgba(142,142,147,.12);color:var(--label)}
+.sp-i.act{background:rgba(232,69,60,.12);color:var(--red)}
+.sp-i.dn{background:rgba(52,199,89,.12);color:#34C759}
+.qc{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.qq{margin:0 0 12px;font-size:15px;font-weight:600;line-height:1.4}
+.qos{display:flex;flex-direction:column;gap:8px}
+.qo{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;background:var(--bg);font-size:15px;cursor:pointer;transition:background .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+.qo:active{transform:scale(.98)}
+.qo.sel{background:rgba(232,69,60,.1);font-weight:500}
+.qo input{position:absolute;opacity:0;pointer-events:none}
+.qo-ck{width:22px;height:22px;border-radius:50%;border:2px solid #D1D1D6;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.qo.sel .qo-ck{border-color:var(--red);background:var(--red)}
+
+/* AI Chat Verification */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.chat-top{flex-shrink:0;padding:4px 20px 10px}
+.chat-ai-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border-radius:var(--r);box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.chat-ai-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-ai-inf{flex:1}
+.chat-ai-nm{font-size:14px;font-weight:600;color:var(--text)}
+.chat-ai-desc{font-size:11px;color:var(--label);margin-top:1px}
+.chat-ai-live{width:8px;height:8px;border-radius:50%;background:#34C759;flex-shrink:0;animation:livePulse 2s ease infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+.chat-progress{display:flex;gap:4px;margin-top:10px}
+.chat-dot{width:100%;height:3px;border-radius:2px;background:rgba(142,142,147,.15);transition:background .3s}
+.chat-dot.done{background:linear-gradient(90deg,#6366F1,#8B5CF6)}
+.chat-dot.active{background:linear-gradient(90deg,#6366F1,#A78BFA);animation:dotPulse 1.5s ease infinite}
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.chat-msgs{flex:1;overflow-y:auto;padding:12px 16px 8px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.chat-msg{max-width:82%;display:flex;flex-direction:column;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.chat-msg.ai{align-self:flex-start}
+.chat-msg.user{align-self:flex-end}
+.chat-bubble{padding:10px 14px;font-size:14px;line-height:1.55;border-radius:18px;word-break:break-word}
+.chat-msg.ai .chat-bubble{background:var(--card);color:var(--text);border-bottom-left-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.chat-msg.user .chat-bubble{background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border-bottom-right-radius:6px}
+.chat-time{font-size:10px;color:var(--label);margin-top:3px;padding:0 4px}
+.chat-msg.user .chat-time{text-align:right}
+
+/* Typing indicator */
+.typing-dots{display:flex;gap:4px;padding:10px 14px;background:var(--card);border-radius:18px;border-bottom-left-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.06);width:fit-content}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:#A0A0A8;animation:typeBounce .6s ease infinite}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+@keyframes typeBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+
+/* Chat input */
+.chat-input-bar{flex-shrink:0;display:flex;align-items:flex-end;gap:8px;padding:8px 16px 28px;background:var(--bg);border-top:1px solid var(--sep)}
+.chat-input{flex:1;border:0;background:var(--card);border-radius:20px;padding:10px 16px;font-size:14px;color:var(--text);outline:0;resize:none;max-height:80px;min-height:40px;line-height:1.4;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.chat-input::placeholder{color:#C7C7CC}
+.chat-send{width:34px;height:34px;border-radius:50%;border:0;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .12s,opacity .15s;-webkit-tap-highlight-color:transparent}
+.chat-send:active{transform:scale(.9)}
+.chat-send.dis{opacity:.35;pointer-events:none}
+
+/* AI Verdict */
+.verdict-card{margin:8px 0;padding:16px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));border-radius:16px;border:1px solid rgba(99,102,241,.15)}
+.verdict-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.verdict-icon{font-size:24px}
+.verdict-title{font-size:16px;font-weight:700;color:var(--text)}
+.verdict-body{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px}
+.verdict-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.verdict-tag{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.verdict-tag.pass{background:rgba(52,199,89,.12);color:#34C759}
+.verdict-tag.info{background:rgba(99,102,241,.1);color:#6366F1}
+.verdict-btn{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:transform .12s}
+.verdict-btn:active{transform:scale(.98)}
+
+/* MAIN APP */
+.m-pg{position:relative;padding-bottom:0}
+
+/* Top bar for main app */
+.app-topbar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:4px 20px 0}
+.app-topbar-title{font-size:13px;font-weight:600;color:var(--label)}
+.avatar-btn{position:relative;width:34px;height:34px;border-radius:50%;border:0;background:linear-gradient(135deg,#FF6B6B,#E8453C);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.avatar-btn:active{transform:scale(.92)}
+.avatar-btn-txt{color:#fff;font-size:14px;font-weight:700}
+.avatar-badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg);animation:badgePop .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* Profile / Me page */
+.me-pg{background:var(--bg);padding-bottom:90px}
+.me-header{display:flex;flex-direction:column;align-items:center;padding:20px 24px 24px;background:linear-gradient(180deg,#FFF5F5 0%,var(--bg) 100%)}
+.me-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#FF6B6B,#E8453C);display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;font-weight:700;margin-bottom:12px;box-shadow:0 6px 20px rgba(232,69,60,.25)}
+.me-name{font-size:22px;font-weight:740;letter-spacing:-.02em}
+.me-ref{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:13px;color:var(--label)}
+.me-ref svg{flex-shrink:0}
+.me-stats{display:flex;gap:0;margin-top:16px;background:var(--card);border-radius:var(--r);overflow:hidden;width:100%;max-width:320px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.me-stat{flex:1;display:flex;flex-direction:column;align-items:center;padding:14px 8px}
+.me-stat+.me-stat{border-left:1px solid var(--sep)}
+.me-stat-n{font-size:20px;font-weight:750;color:var(--text)}
+.me-stat-l{font-size:11px;color:var(--label);margin-top:2px}
+.me-section{padding:0 20px;margin-top:20px}
+.me-section-t{font-size:13px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-left:4px}
+.me-card{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.me-row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .12s}
+.me-row:active{background:rgba(0,0,0,.03)}
+.me-row+.me-row{border-top:1px solid var(--sep)}
+.me-row-ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.me-row-inf{flex:1;min-width:0}
+.me-row-t{font-size:15px;font-weight:500}
+.me-row-d{font-size:12px;color:var(--label);margin-top:1px}
+.me-row-arr{color:#C7C7CC;flex-shrink:0}
+
+/* Invite card preview */
+.invite-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.invite-card{width:100%;max-width:320px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:cardIn .3s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes cardIn{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.invite-card-top{background:linear-gradient(135deg,#E8453C,#FF6B6B);padding:28px 24px 24px;color:#fff;text-align:center}
+.invite-card-emoji{font-size:40px;margin-bottom:8px}
+.invite-card-t{font-size:20px;font-weight:740;line-height:1.3;letter-spacing:-.02em}
+.invite-card-sub{font-size:13px;opacity:.85;margin-top:8px;line-height:1.5}
+.invite-card-bottom{padding:20px 24px 24px;text-align:center}
+.invite-card-app{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px}
+.invite-card-icon{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#E8453C,#FF6B6B);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800}
+.invite-card-appname{font-size:15px;font-weight:600;color:var(--text)}
+.invite-card-btn{width:100%;padding:14px;border:0;border-radius:12px;background:var(--red);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.invite-card-btn:active{transform:scale(.98)}
+.invite-close{width:100%;padding:14px;border:0;background:0;color:#fff;font-size:15px;font-weight:500;cursor:pointer;margin-top:12px}
+
+/* Guarantee confirmation panel */
+.guarantee-panel{width:100%;max-width:340px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:cardIn .3s cubic-bezier(.175,.885,.32,1.275)}
+.guarantee-header{padding:28px 24px 20px;text-align:center}
+.guarantee-emoji{font-size:48px;margin-bottom:12px}
+.guarantee-t{font-size:20px;font-weight:740;letter-spacing:-.02em;line-height:1.3}
+.guarantee-rules{padding:0 24px 20px}
+.guarantee-rule{display:flex;align-items:flex-start;gap:10px;padding:10px 0}
+.guarantee-rule+.guarantee-rule{border-top:1px solid var(--sep)}
+.guarantee-rule-ic{flex-shrink:0;font-size:18px;width:28px;text-align:center;margin-top:1px}
+.guarantee-rule-txt{flex:1;font-size:14px;color:var(--text2);line-height:1.5}
+.guarantee-rule-txt strong{color:var(--text);font-weight:600}
+.guarantee-btns{padding:0 24px 24px;display:flex;flex-direction:column;gap:8px}
+
+/* Behavior badges */
+.me-badges{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.me-badge{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:99px;background:var(--card);font-size:13px;font-weight:600;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.me-badge-emoji{font-size:14px}
+
+/* Trust chain section */
+.trust-chain{padding:0 20px;margin-top:20px}
+.trust-person{display:flex;align-items:center;gap:10px;padding:12px 0}
+.trust-person+.trust-person{border-top:1px solid var(--sep)}
+.trust-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FF6B6B,#E8453C);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;flex-shrink:0}
+.trust-inf{flex:1;min-width:0}
+.trust-nm{font-size:14px;font-weight:600}
+.trust-desc{font-size:12px;color:var(--label);margin-top:1px}
+.trust-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.trust-mini-badge{font-size:11px;color:var(--label)}
+
+/* Social proof on cards */
+.c-social{display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:8px 12px;border-radius:10px;background:rgba(232,69,60,.04)}
+.c-social-avatars{display:flex;flex-shrink:0}
+.c-social-av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#FF6B6B,#E8453C);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;border:2px solid #fff;margin-left:-6px}
+.c-social-av:first-child{margin-left:0}
+.c-social-txt{font-size:12px;color:var(--text2);line-height:1.35}
+
+/* Toast */
+.toast{position:absolute;top:60px;left:20px;right:20px;background:rgba(255,255,255,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:100;animation:toastIn .4s cubic-bezier(.175,.885,.32,1.275),toastOut .3s ease 2.5s forwards}
+@keyframes toastIn{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes toastOut{to{transform:translateY(-30px);opacity:0;pointer-events:none}}
+.toast-icon{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#34C759,#30D158);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast-inf{flex:1}
+.toast-t{font-size:14px;font-weight:600}
+.toast-d{font-size:12px;color:var(--label);margin-top:1px}
+
+/* Cards */
+.ct{flex:1;display:flex;flex-direction:column;padding:0 0 90px}
+.ct-h{padding:6px 22px 10px;flex-shrink:0}
+.ct-t{margin:0;font-size:28px;font-weight:740;letter-spacing:-.025em}
+.ct-s{margin:4px 0 0;font-size:13px;color:var(--label)}
+.sw-area{flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:0 18px;min-height:0}
+.sw-c{position:absolute;width:calc(100% - 36px);max-height:calc(100% - 8px);border-radius:20px;background:var(--card);box-shadow:0 8px 32px rgba(0,0,0,.1);overflow:hidden;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}
+.sw-behind{transform:scale(.94) translateY(8px);opacity:.6}
+.sw-front{z-index:2;cursor:grab}
+.sw-front:active{cursor:grabbing}
+.c-stamp{position:absolute;top:24px;z-index:10;padding:8px 18px;border-radius:8px;font-size:22px;font-weight:800;letter-spacing:.05em;opacity:0;transition:opacity .12s;pointer-events:none}
+.st-like{left:20px;border:3px solid #34C759;color:#34C759;transform:rotate(-12deg)}
+.st-nope{right:20px;border:3px solid var(--red);color:var(--red);transform:rotate(12deg)}
+.c-stamp.show{opacity:1}
+.c-img{width:100%;height:200px;background-size:cover;background-position:center;position:relative;flex-shrink:0}
+.c-img-ov{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.55) 0%,transparent 50%)}
+.c-img-ct{position:absolute;bottom:14px;left:16px;right:16px;color:#fff;z-index:1}
+.c-sn{font-size:22px;font-weight:720;letter-spacing:-.02em;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+.c-ar{font-size:13px;opacity:.85;margin-top:2px}
+.c-bd{padding:14px 16px 18px;flex:1;min-height:0}
+.c-rec{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.c-av-ring{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FF6B6B,#E8453C);padding:2px;flex-shrink:0}
+.c-av-ph{width:100%;height:100%;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--red)}
+.c-rec-inf{display:flex;flex-direction:column}
+.c-rec-nm{font-size:15px;font-weight:600}
+.c-rec-bd{font-size:12px;color:var(--label);margin-top:1px}
+.c-ref-tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--red);font-weight:500;margin-top:2px;opacity:.8}
+.c-hook{margin:0 0 12px;font-size:15px;line-height:1.5;color:var(--text2);font-style:italic}
+.c-tags{display:flex;gap:6px;flex-wrap:wrap}
+.c-tag{padding:4px 10px;border-radius:99px;background:rgba(232,69,60,.08);color:var(--red);font-size:12px;font-weight:500}
+.sw-acts{flex-shrink:0;display:flex;justify-content:center;gap:40px;padding:10px 0 6px}
+.sw-b{width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
+.sw-b:active{transform:scale(.9)}
+.sw-nope{background:#fff;color:var(--red);box-shadow:0 4px 16px rgba(232,69,60,.15)}
+.sw-like{background:var(--red);color:#fff;box-shadow:0 4px 16px rgba(232,69,60,.3)}
+
+/* Map */
+.mt{flex:1;display:flex;flex-direction:column;padding-bottom:78px}
+.mt-bar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:6px 16px 10px}
+.mt-city{flex-shrink:0;display:flex;align-items:center;gap:4px;border:0;background:var(--card);padding:8px 12px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer}
+.mt-search{flex:1;display:flex;align-items:center;gap:6px;background:var(--card);padding:9px 12px;border-radius:10px;font-size:14px;color:#C7C7CC;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.mt-view{flex:1;position:relative;margin:0 12px;border-radius:18px;overflow:hidden}
+.mt-bg{width:100%;height:100%;background:linear-gradient(170deg,#E8F4FD 0%,#E0F7ED 40%,#F5F3E8 100%);position:relative}
+.mt-grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(0,0,0,.04) 1px,transparent 1px);background-size:36px 36px}
+.mt-river{position:absolute;inset:0;width:100%;height:100%}
+.rd{position:absolute;background:rgba(0,0,0,.08);border-radius:99px}
+.rd-h1{width:92%;height:6px;left:-4%;top:38%;transform:rotate(5deg)}
+.rd-h2{width:80%;height:5px;left:14%;top:62%;transform:rotate(-8deg)}
+.rd-v1{width:5px;height:70%;left:45%;top:10%;transform:rotate(4deg)}
+.rd-v2{width:4px;height:55%;left:70%;top:25%;transform:rotate(-6deg)}
+.mp{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:2;transition:transform .2s}
+.mp:active,.mp.act{transform:translate(-50%,-50%) scale(1.15);z-index:3}
+.mp-av{width:44px;height:44px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 3px 12px rgba(0,0,0,.15);border:3px solid var(--card);position:relative;z-index:1}
+.mp.act .mp-av{border-color:var(--red)}
+.mp-pulse{position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(232,69,60,.3);animation:pls 2s ease-out infinite;opacity:0}
+.mp.act .mp-pulse{opacity:1}
+@keyframes pls{0%{transform:scale(.8);opacity:.8}100%{transform:scale(1.4);opacity:0}}
+.mp-card{position:absolute;bottom:16px;left:12px;right:12px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:10;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mp-card-av{width:44px;height:44px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.mp-card-inf{flex:1;min-width:0}
+.mp-card-nm{font-size:16px;font-weight:620}
+.mp-card-mt{font-size:12px;color:var(--label);margin-top:2px}
+.mp-card-btn{flex-shrink:0;padding:8px 14px;border-radius:99px;border:0;background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.mt-chip{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:10px;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-size:12px;font-weight:600;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.08);z-index:5}
+
+/* Create */
+.crt{flex:1;display:flex;flex-direction:column;padding:6px 20px 90px}
+.crt-t{margin:0 0 16px;font-size:28px;font-weight:740;letter-spacing:-.025em}
+.crt-ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card);border-radius:18px;border:2px dashed #D1D1D6;padding:32px;text-align:center}
+.crt-h{margin:12px 0 0;font-size:17px;font-weight:600;color:var(--text)}
+.crt-hs{margin:6px 0 0;font-size:14px;color:var(--label)}
+.dev-rst{margin-top:16px;flex-shrink:0;width:100%;padding:12px;border:1px dashed #FF9500;border-radius:12px;background:rgba(255,149,0,.06);color:#FF9500;font-size:13px;font-weight:600;cursor:pointer}
+
+/* Tab bar */
+.tbar{position:absolute;bottom:0;left:0;right:0;height:78px;display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);z-index:50}
+.tb{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:0;padding:4px 18px;color:#8E8E93;font-size:10px;font-weight:500;cursor:pointer;transition:color .15s;-webkit-tap-highlight-color:transparent}
+.tb.on{color:var(--red)}
+.tb.on span{font-weight:600}
+.tb-c{padding:0;margin-top:-4px}
+.tb-plus{width:46px;height:46px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(232,69,60,.35);transition:transform .12s}
+.tb-c:active .tb-plus{transform:scale(.92)}
+
+/* blur overlay for hook wall teaser */
+.blur-overlay{position:absolute;inset:0;z-index:20;background:rgba(242,242,247,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;border-radius:20px}
+.blur-lock{font-size:40px;margin-bottom:12px}
+.blur-t{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+.blur-sub{font-size:13px;color:var(--label);margin-top:6px;line-height:1.4}
+</style>
+<script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+</head>
+<body>
+<div id="app">
+<main class="screen">
+<div class="phone">
+  <div class="sb">
+    <span>9:41</span>
+    <div class="sb-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 2.6a6.6 6.6 0 0 1 4.7 1.9.6.6 0 0 0 .8-.8A7.8 7.8 0 0 0 8 1.2a7.8 7.8 0 0 0-5.5 2.5.6.6 0 0 0 .8.8A6.6 6.6 0 0 1 8 2.6zm0 2.8c1.3 0 2.5.5 3.4 1.3a.6.6 0 0 0 .8-.8A5.4 5.4 0 0 0 8 4.2a5.4 5.4 0 0 0-4.2 1.7.6.6 0 0 0 .8.8A4.2 4.2 0 0 1 8 5.4zm0 2.8c.8 0 1.5.3 2 .8a.6.6 0 0 0 .9-.8A3.4 3.4 0 0 0 8 7a3.4 3.4 0 0 0-2.9 1.2.6.6 0 0 0 .8.8c.6-.5 1.3-.8 2.1-.8zm0 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11"><rect x="0" y="3" width="2" height="8" rx=".5" fill="currentColor" opacity=".4"/><rect x="3.5" y="2" width="2" height="9" rx=".5" fill="currentColor" opacity=".6"/><rect x="7" y="1" width="2" height="10" rx=".5" fill="currentColor" opacity=".8"/><rect x="10.5" y="0" width="2" height="11" rx=".5" fill="currentColor"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="3.5" width="2" height="5" rx="1" fill="currentColor" opacity=".4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/></svg>
+    </div>
+  </div>
+
+  <div :class="['page-wrap',{exit:transitioning}]">
+
+    <!-- ═══ 1. WELCOME ═══ -->
+    <section v-if="step==='welcome'" class="pg w-pg">
+      <div class="w-sp"></div>
+      <div class="w-icon ai a1">
+        <img src="本地人拓展版.png" alt="本地人" style="width:120px;height:120px;border-radius:28px;object-fit:cover;box-shadow:0 16px 48px rgba(232,69,60,.25),0 4px 12px rgba(0,0,0,.08)"/>
+      </div>
+      <!-- Referral welcome -->
+      <template v-if="referrer">
+        <div class="w-ref-tag ai a2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> {{ referrer }} 的引荐</div>
+        <h1 class="w-t ai a3"><span>你是{{ referrer }}认可的</span><span>本地人！</span></h1>
+        <p class="w-sub ai a4">快来加入，解锁长沙本地人的私藏推荐</p>
+      </template>
+      <template v-else>
+        <h1 class="w-t ai a2"><span>不知道吃什么？</span><span>先问本地人！</span></h1>
+        <p class="w-sub ai a3">基于本地人身份的真实种草社区</p>
+      </template>
+      <div class="w-sp"></div>
+      <button class="btn-hero ai" :class="referrer?'a5':'a4'" @click="goStep('demo')">先逛逛</button>
+      <p class="w-hint ai" :class="referrer?'a6':'a5'">无需注册，先体验一下</p>
+    </section>
+
+    <!-- ═══ 2. DEMO SWIPE (pre-login teaser) ═══ -->
+    <section v-else-if="step==='demo'" class="pg demo-pg">
+      <div class="demo-header">
+        <div class="demo-badge">免登录试玩</div>
+        <h2 class="demo-title">本地人都在推荐什么</h2>
+        <p class="demo-sub">左滑跳过，右滑心动 — 试试手感</p>
+      </div>
+      <div class="demo-counter">{{ demoSwiped }} / 3</div>
+
+      <div class="sw-area" style="padding-bottom:12px">
+        <!-- show hook wall when 3 cards swiped -->
+        <template v-if="demoSwiped >= 3">
+          <div class="sw-c" style="z-index:1">
+            <div class="c-img" :style="{backgroundImage:'url('+demoCards[3].img+')'}">
+              <div class="c-img-ov"></div>
+            </div>
+            <div class="c-bd" style="filter:blur(6px);pointer-events:none">
+              <div class="c-rec"><div class="c-av-ring"><div class="c-av-ph">?</div></div><div class="c-rec-inf"><span class="c-rec-nm">???</span><span class="c-rec-bd">本地人推荐</span></div></div>
+              <p class="c-hook">"还有 128 条本地人私藏推荐等你解锁…"</p>
+            </div>
+            <div class="blur-overlay">
+              <div class="blur-lock">🔒</div>
+              <div class="blur-t">还有 128 条私藏推荐</div>
+              <div class="blur-sub">注册成为本地人<br/>解锁全部推荐 + 地图 + 发布</div>
+              <button class="btn-hero-sm" style="margin-top:20px;max-width:240px" @click="goStep('login')">30秒注册，解锁全部</button>
+              <button class="btn-skip" @click="goStep('login')">我已经有账号</button>
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="sw-c sw-behind">
+            <div class="c-img" :style="{backgroundImage:'url('+demoNextCard.img+')'}"></div>
+          </div>
+          <div class="sw-c sw-front" :style="demoCardStyle"
+            @touchstart.prevent="dOnTS" @touchmove.prevent="dOnTM" @touchend="dOnTE"
+            @mousedown.prevent="dOnMD">
+            <div :class="['c-stamp st-like',{show:dSwDec==='like'}]">可以可以</div>
+            <div :class="['c-stamp st-nope',{show:dSwDec==='nope'}]">不了不了</div>
+            <div class="c-img" :style="{backgroundImage:'url('+demoCurCard.img+')'}">
+              <div class="c-img-ov"></div>
+              <div class="c-img-ct">
+                <div class="c-sn">{{ demoCurCard.shopName }}</div>
+                <div class="c-ar">{{ demoCurCard.area }} · {{ demoCurCard.distance }}</div>
+              </div>
+            </div>
+            <div class="c-bd">
+              <div class="c-rec">
+                <div class="c-av-ring"><div class="c-av-ph">{{ demoCurCard.recommender[0] }}</div></div>
+                <div class="c-rec-inf">
+                  <span class="c-rec-nm">{{ demoCurCard.recommender }}</span>
+                  <span class="c-rec-bd">{{ demoCurCard.years }}年长沙人 · {{ demoCurCard.badge }}</span>
+                </div>
+              </div>
+              <p class="c-hook">"{{ demoCurCard.hook }}"</p>
+              <div class="c-tags"><span v-for="t in demoCurCard.tags" :key="t" class="c-tag">{{ t }}</span></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div v-if="demoSwiped < 3" class="sw-acts" style="padding-bottom:24px">
+        <button class="sw-b sw-nope" @click="demoBtnSw('left')"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button class="sw-b sw-like" @click="demoBtnSw('right')"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21.3l7.8-7.8 1-1.1a5.5 5.5 0 000-7.8z"/></svg></button>
+      </div>
+    </section>
+
+    <!-- ═══ 3. LOGIN ═══ -->
+    <section v-else-if="step==='login'" class="pg f-pg">
+      <div class="nav">
+        <button class="nav-bk" @click="goBack"><svg width="10" height="18" viewBox="0 0 10 18"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+        <span class="nav-t">登录</span><span class="nav-sp"></span>
+      </div>
+      <div class="f-body">
+        <h2 class="f-h">欢迎回来</h2>
+        <p class="f-sub">输入手机号，成为本地人</p>
+        <div class="fg">
+          <div class="ff">
+            <span class="ff-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2"/></svg></span>
+            <input v-model="phone" type="tel" maxlength="11" placeholder="手机号" class="ff-in"/>
+          </div>
+          <div class="fd"></div>
+          <div class="ff">
+            <span class="ff-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+            <input v-model="code" type="text" maxlength="6" placeholder="验证码" class="ff-in"/>
+            <button class="sms-b">获取验证码</button>
+          </div>
+        </div>
+        <button :class="['btn-p',{dis:!loginReady}]" @click="submitLogin">登录</button>
+        <button class="btn-g" @click="fillTest">使用测试账号</button>
+      </div>
+    </section>
+
+    <!-- ═══ 4. PROFILE ═══ -->
+    <section v-else-if="step==='profile'" class="pg f-pg">
+      <div class="nav">
+        <button class="nav-bk" @click="goBack"><svg width="10" height="18" viewBox="0 0 10 18"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+        <span class="nav-t">本地人建档</span><span class="nav-sp"></span>
+      </div>
+      <div class="f-body">
+        <div class="sp"><span class="sp-i act">1 建档</span><span class="sp-i">2 AI验证</span></div>
+        <h2 class="f-h">你好呀，长沙人！</h2>
+        <p class="f-sub">完善你的本地人档案</p>
+        <div class="fg">
+          <div class="ff"><label class="ff-lb">昵称</label><input v-model="nickname" maxlength="16" placeholder="例如：河西夜宵王" class="ff-in"/></div>
+          <div class="fd"></div>
+          <div class="ff"><label class="ff-lb">性别</label><select v-model="gender" class="ff-sel"><option disabled value="">请选择</option><option>女</option><option>男</option><option>不方便透露</option></select></div>
+          <div class="fd"></div>
+          <div class="ff"><label class="ff-lb">年龄段</label><select v-model="ageRange" class="ff-sel"><option disabled value="">请选择</option><option>18-22</option><option>23-27</option><option>28-32</option><option>33-40</option><option>40+</option></select></div>
+        </div>
+        <div class="fg">
+          <div class="ff"><label class="ff-lb">在长沙</label><select v-model="years" class="ff-sel"><option disabled value="">选年限</option><option>1-2年</option><option>3-5年</option><option>6-10年</option><option>10年以上</option><option>没离开过！</option></select></div>
+          <div class="fd"></div>
+          <div class="ff"><label class="ff-lb">所在区</label><select v-model="district" class="ff-sel"><option disabled value="">请选择</option><option>天心区</option><option>芙蓉区</option><option>开福区</option><option>岳麓区</option><option>雨花区</option><option>望城区</option><option>长沙县</option></select></div>
+          <div class="fd"></div>
+          <div class="ff"><label class="ff-lb">常去</label><input v-model="places" maxlength="50" placeholder="解放西、南门口…" class="ff-in"/></div>
+        </div>
+        <button :class="['btn-p',{dis:!profileReady}]" @click="goVerify">下一步</button>
+      </div>
+    </section>
+
+    <!-- ═══ 5. AI VERIFY ═══ -->
+    <section v-else-if="step==='verify'" class="pg f-pg" style="overflow:hidden;min-height:0">
+      <div class="nav">
+        <button class="nav-bk" @click="goBack"><svg width="10" height="18" viewBox="0 0 10 18"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+        <span class="nav-t">AI 本地人验证</span><span class="nav-sp"></span>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-top">
+          <div class="chat-ai-bar">
+            <div class="chat-ai-av"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 2a4 4 0 014 4v1a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M6 10a6 6 0 0012 0"/><path d="M12 16v6"/><path d="M8 22h8"/></svg></div>
+            <div class="chat-ai-inf">
+              <div class="chat-ai-nm">本地人验证官</div>
+              <div class="chat-ai-desc">AI 驱动 · 动态验证</div>
+            </div>
+            <div class="chat-ai-live"></div>
+          </div>
+          <div class="chat-progress">
+            <div v-for="i in 5" :key="i" :class="['chat-dot',{done:chatRound>i,active:chatRound===i}]"></div>
+          </div>
+        </div>
+        <div class="chat-msgs" ref="chatScroll">
+          <template v-for="(msg,mi) in chatMessages" :key="mi">
+            <div :class="['chat-msg',msg.role]">
+              <div class="chat-bubble" v-if="!msg.verdict" v-html="msg.text"></div>
+              <!-- Verdict card -->
+              <div v-if="msg.verdict" class="verdict-card">
+                <div class="verdict-header">
+                  <span class="verdict-icon">🎉</span>
+                  <span class="verdict-title">验证通过！</span>
+                </div>
+                <div class="verdict-body">{{ msg.text }}</div>
+                <div class="verdict-tags">
+                  <span class="verdict-tag pass">✓ 本地人身份确认</span>
+                  <span class="verdict-tag info">📍 {{ district || '长沙' }}</span>
+                  <span class="verdict-tag info">🕐 {{ years || '资深' }}本地人</span>
+                </div>
+                <button class="verdict-btn" @click="submitVerify">进入本地人社区</button>
+              </div>
+            </div>
+          </template>
+          <!-- Typing indicator -->
+          <div v-if="aiTyping" class="chat-msg ai">
+            <div class="typing-dots"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
+          </div>
+        </div>
+        <div v-if="!chatDone" class="chat-input-bar">
+          <input class="chat-input" v-model="chatInput" @keydown.enter="sendChat" :placeholder="chatPlaceholder" :disabled="aiTyping"/>
+          <button :class="['chat-send',{dis:!chatInput.trim()||aiTyping}]" @click="sendChat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="#fff" stroke="#fff" stroke-width="1"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 6. MAIN APP ═══ -->
+    <section v-else class="pg m-pg">
+
+      <!-- Top bar with avatar -->
+      <div class="app-topbar" v-if="tab!=='me'">
+        <span class="app-topbar-title"></span>
+        <button class="avatar-btn" @click="tab='me'">
+          <span class="avatar-btn-txt">{{ (nickname||'我')[0] }}</span>
+          <span v-if="inviteCount>0" class="avatar-badge">{{ inviteCount }}</span>
+        </button>
+      </div>
+
+      <!-- Toast on first entry -->
+      <div v-if="showToast" class="toast">
+        <div class="toast-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="toast-inf">
+          <div class="toast-t">欢迎加入本地人！</div>
+          <div class="toast-d" v-if="referrer">你的引荐人：{{ referrer }}</div>
+          <div class="toast-d" v-else>你已通过本地人验证</div>
+        </div>
+      </div>
+
+      <!-- Cards tab -->
+      <div v-if="tab==='cards'" class="ct">
+        <div class="ct-h"><h2 class="ct-t">发现好吃的</h2><p class="ct-s">左滑跳过 · 右滑收藏</p></div>
+        <div class="sw-area">
+          <div class="sw-c sw-behind"><div class="c-img" :style="{backgroundImage:'url('+nextCard.img+')'}"></div></div>
+          <div class="sw-c sw-front" :style="cardStyle" @touchstart.prevent="onTS" @touchmove.prevent="onTM" @touchend="onTE" @mousedown.prevent="onMD">
+            <div :class="['c-stamp st-like',{show:swDec==='like'}]">可以可以</div>
+            <div :class="['c-stamp st-nope',{show:swDec==='nope'}]">不了不了</div>
+            <div class="c-img" :style="{backgroundImage:'url('+curCard.img+')'}"><div class="c-img-ov"></div><div class="c-img-ct"><div class="c-sn">{{ curCard.shopName }}</div><div class="c-ar">{{ curCard.area }} · {{ curCard.distance }}</div></div></div>
+            <div class="c-bd">
+              <div class="c-rec"><div class="c-av-ring"><div class="c-av-ph">{{ curCard.recommender[0] }}</div></div><div class="c-rec-inf"><span class="c-rec-nm">{{ curCard.recommender }}</span><span class="c-rec-bd">{{ curCard.years }}年长沙人 · {{ curCard.badge }}</span><span class="c-ref-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg> 由{{ curCard.referredBy }}引荐</span></div></div>
+              <p class="c-hook">"{{ curCard.hook }}"</p>
+              <div class="c-social" v-if="curCard.socialProof">
+                <div class="c-social-avatars">
+                  <span v-for="(sp,si) in curCard.socialProof.people" :key="si" class="c-social-av">{{ sp[0] }}</span>
+                </div>
+                <span class="c-social-txt">{{ curCard.socialProof.text }}</span>
+              </div>
+              <div class="c-tags"><span v-for="t in curCard.tags" :key="t" class="c-tag">{{ t }}</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="sw-acts">
+          <button class="sw-b sw-nope" @click="btnSw('left')"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          <button class="sw-b sw-like" @click="btnSw('right')"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21.3l7.8-7.8 1-1.1a5.5 5.5 0 000-7.8z"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Map tab -->
+      <div v-else-if="tab==='map'" class="mt">
+        <div class="mt-bar">
+          <button class="mt-city"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> 长沙</button>
+          <div class="mt-search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.7" y2="16.7"/></svg> 搜索本地人或店铺</div>
+        </div>
+        <div class="mt-view">
+          <div class="mt-bg">
+            <div class="mt-grid"></div>
+            <svg class="mt-river" viewBox="0 0 400 500" preserveAspectRatio="none"><path d="M120,0 C140,80 80,160 130,250 C180,340 90,420 140,500" stroke="rgba(96,165,250,.35)" stroke-width="28" fill="none"/></svg>
+            <div class="rd rd-h1"></div><div class="rd rd-h2"></div><div class="rd rd-v1"></div><div class="rd rd-v2"></div>
+            <div v-for="(p,i) in pois" :key="i" :class="['mp',{act:selPoi===i}]" :style="{left:p.x+'%',top:p.y+'%'}" @click="selPoi=selPoi===i?null:i">
+              <div class="mp-av">{{ p.avatar }}</div><div class="mp-pulse"></div>
+            </div>
+          </div>
+          <div v-if="selPoi!==null" class="mp-card" :key="selPoi">
+            <div class="mp-card-av">{{ pois[selPoi].avatar }}</div>
+            <div class="mp-card-inf"><div class="mp-card-nm">{{ pois[selPoi].name }}</div><div class="mp-card-mt">{{ pois[selPoi].years }}年本地人 · {{ pois[selPoi].badge }}</div></div>
+            <button class="mp-card-btn">查看推荐</button>
+          </div>
+          <div class="mt-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg> 长沙 · 中心区域</div>
+        </div>
+      </div>
+
+      <!-- Me / Profile tab -->
+      <div v-else-if="tab==='me'" class="pg me-pg">
+        <div class="nav">
+          <button class="nav-bk" @click="tab='cards'"><svg width="10" height="18" viewBox="0 0 10 18"><path d="M9 1L1 9l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+          <span class="nav-t">我的</span><span class="nav-sp"></span>
+        </div>
+        <div class="me-header">
+          <div class="me-avatar">{{ (nickname||'我')[0] }}</div>
+          <div class="me-name">{{ nickname || '本地人' }}</div>
+          <div class="me-ref" v-if="referrer">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            由 {{ referrer }} 引荐
+          </div>
+          <div class="me-badges">
+            <span class="me-badge"><span class="me-badge-emoji">🤝</span> {{ myTrustCount }} 人信任</span>
+            <span class="me-badge"><span class="me-badge-emoji">📝</span> {{ myRecommendCount }} 条推荐</span>
+            <span class="me-badge"><span class="me-badge-emoji">❤️</span> {{ myCollectedCount }} 人收藏</span>
+          </div>
+        </div>
+
+        <!-- Trust chain -->
+        <div class="me-section">
+          <div class="me-section-t">信任链</div>
+          <div class="me-card">
+            <div class="trust-chain" style="padding:0">
+              <!-- Referrer -->
+              <div v-if="referrer" class="trust-person" style="padding:12px 16px">
+                <div class="trust-av">{{ referrer[0] }}</div>
+                <div class="trust-inf">
+                  <div class="trust-nm">{{ referrer }}</div>
+                  <div class="trust-desc">我的引荐人</div>
+                  <div class="trust-badges"><span class="trust-mini-badge">🤝 15人信任 · 📝 12条推荐</span></div>
+                </div>
+              </div>
+              <div v-if="!referrer" class="trust-person" style="padding:12px 16px">
+                <div class="trust-av" style="background:linear-gradient(135deg,#34C759,#30D158)">⭐</div>
+                <div class="trust-inf">
+                  <div class="trust-nm">种子用户</div>
+                  <div class="trust-desc">你是最早的一批本地人</div>
+                </div>
+              </div>
+              <!-- People I referred -->
+              <div v-for="(p,i) in myReferrals" :key="i" class="trust-person" style="padding:12px 16px;border-top:1px solid var(--sep)">
+                <div class="trust-av">{{ p.name[0] }}</div>
+                <div class="trust-inf">
+                  <div class="trust-nm">{{ p.name }}</div>
+                  <div class="trust-desc">我引荐的本地人</div>
+                  <div class="trust-badges"><span class="trust-mini-badge">🤝 {{ p.trustCount }}人信任 · 📝 {{ p.recCount }}条推荐</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="me-section">
+          <div class="me-section-t">社交</div>
+          <div class="me-card">
+            <div class="me-row" @click="showGuarantee=true">
+              <div class="me-row-ic" style="background:rgba(232,69,60,.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8453C" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+              <div class="me-row-inf">
+                <div class="me-row-t">邀请本地人</div>
+                <div class="me-row-d">你还有 {{ inviteCount }} 个引荐名额</div>
+              </div>
+              <svg class="me-row-arr" width="8" height="14" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="me-section">
+          <div class="me-section-t">设置</div>
+          <div class="me-card">
+            <div class="me-row">
+              <div class="me-row-ic" style="background:rgba(142,142,147,.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+              <div class="me-row-inf"><div class="me-row-t">设置</div></div>
+              <svg class="me-row-arr" width="8" height="14" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:20px">
+          <button class="dev-rst" @click="devReset">开发调试：重置所有数据</button>
+        </div>
+      </div>
+
+      <!-- Create tab -->
+      <div v-else class="crt">
+        <h2 class="crt-t">发布推荐</h2>
+        <div class="crt-ph">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <p class="crt-h">拍一张你最爱的本地小店</p>
+          <p class="crt-hs">用一句话种草，让外地人找到宝藏</p>
+          <button class="btn-p" style="margin-top:20px;max-width:220px">拍照 / 从相册选择</button>
+        </div>
+      </div>
+
+      <!-- Tab bar (only show when not on me page) -->
+      <nav v-if="tab!=='me'" class="tbar">
+        <button :class="['tb',{on:tab==='map'}]" @click="tab='map'"><svg width="22" height="22" viewBox="0 0 24 24" :fill="tab==='map'?'#E8453C':'none'" :stroke="tab==='map'?'#E8453C':'#8E8E93'" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3" :stroke="tab==='map'?'#fff':'#8E8E93'"/></svg><span>地图</span></button>
+        <button :class="['tb tb-c',{on:tab==='create'}]" @click="tab='create'"><div class="tb-plus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div></button>
+        <button :class="['tb',{on:tab==='cards'}]" @click="tab='cards'"><svg width="22" height="22" viewBox="0 0 24 24" :fill="tab==='cards'?'#E8453C':'none'" :stroke="tab==='cards'?'#E8453C':'#8E8E93'" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="3"/><path d="M8 21h8M12 17v4"/></svg><span>发现</span></button>
+      </nav>
+    </section>
+  </div>
+</div>
+
+<!-- Guarantee confirmation panel -->
+<div v-if="showGuarantee" class="invite-overlay" @click.self="showGuarantee=false">
+  <div class="guarantee-panel">
+    <div class="guarantee-header">
+      <div class="guarantee-emoji">🛡️</div>
+      <div class="guarantee-t">你将成为 TA 的担保人</div>
+    </div>
+    <div class="guarantee-rules">
+      <div class="guarantee-rule">
+        <span class="guarantee-rule-ic">👁️</span>
+        <span class="guarantee-rule-txt"><strong>关系公开可见</strong><br/>你和被邀请人的引荐关系将在双方主页永久展示</span>
+      </div>
+      <div class="guarantee-rule">
+        <span class="guarantee-rule-ic">⚖️</span>
+        <span class="guarantee-rule-txt"><strong>信任绑定</strong><br/>对方的推荐质量会影响你在社区中的可见度</span>
+      </div>
+      <div class="guarantee-rule">
+        <span class="guarantee-rule-ic">🎫</span>
+        <span class="guarantee-rule-txt"><strong>名额有限</strong><br/>你还有 <strong>{{ inviteCount }} 个</strong>引荐名额，请珍惜使用</span>
+      </div>
+    </div>
+    <div class="guarantee-btns">
+      <button class="btn-p" @click="showGuarantee=false;showInvite=true">我了解，生成邀请</button>
+      <button class="btn-g" style="margin-top:0" @click="showGuarantee=false">再想想</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invite card overlay -->
+<div v-if="showInvite" class="invite-overlay" @click.self="showInvite=false">
+  <div class="invite-card">
+    <div class="invite-card-top">
+      <div class="invite-card-emoji">🤝</div>
+      <div class="invite-card-t">你是{{ nickname||'本地人' }}认可的<br/>本地人，快来加入吧！</div>
+      <div class="invite-card-sub">长沙还有 128 位本地人<br/>在分享私藏好店</div>
+    </div>
+    <div class="invite-card-bottom">
+      <div class="invite-card-app">
+        <div class="invite-card-icon">本</div>
+        <span class="invite-card-appname">本地人</span>
+      </div>
+      <button class="invite-card-btn" @click="showInvite=false">打开看看</button>
+    </div>
+  </div>
+  <button class="invite-close" @click="showInvite=false">关闭预览</button>
+</div>
+</main>
+</div>
+
+<script>
+const{createApp,ref,computed,onMounted}=Vue;
+createApp({
+  setup(){
+    const step=ref('welcome'), transitioning=ref(false), tab=ref('cards');
+    const phone=ref(''),code=ref(''),nickname=ref(''),gender=ref(''),ageRange=ref(''),years=ref(''),district=ref(''),places=ref('');
+    const selPoi=ref(null);
+    const showToast=ref(false);
+    const showInvite=ref(false);
+    const showGuarantee=ref(false);
+    const inviteCount=ref(3);
+
+    /* ── Behavior badges (mock data) ── */
+    const myTrustCount=ref(12);
+    const myRecommendCount=ref(8);
+    const myCollectedCount=ref(46);
+    const myReferrals=ref([
+      {name:'奶茶妹',trustCount:6,recCount:5},
+      {name:'岳麓山人',trustCount:8,recCount:12},
+    ]);
+
+    /* ── Referrer from URL param ── */
+    const urlParams=new URLSearchParams(window.location.search);
+    const referrer=ref(urlParams.get('ref')||'');
+
+    const loginReady=computed(()=>phone.value&&code.value);
+    const profileReady=computed(()=>nickname.value&&gender.value&&ageRange.value&&years.value&&district.value&&places.value);
+
+    /* ── AI Chat Verification ── */
+    const chatMessages=ref([]);
+    const chatInput=ref('');
+    const chatRound=ref(0);
+    const aiTyping=ref(false);
+    const chatDone=ref(false);
+    const chatScroll=ref(null);
+    const chatPlaceholder=computed(()=>{
+      if(chatRound.value===0) return '输入你的回答…';
+      if(chatRound.value<=2) return '继续聊…';
+      return '最后一个问题了…';
+    });
+
+    /* Mock AI conversation script — questions adapt based on round */
+    const aiScript=[
+      {delay:800, text:'你好！我是本地人验证官 🤖 接下来我会问你几个关于长沙的问题，都是只有真正在这里生活过的人才会知道的细节。放轻松，就当聊天～'},
+      {delay:600, text:'先来个简单的：你平时下班后，一般去哪一片吃宵夜？'},
+      /* round 1 answer → AI follow-up */
+      {delay:1200, text:()=>'听起来挺熟的 👀 那你说的这片区域，你一般怎么过去？坐地铁的话在哪站下？还是骑车？'},
+      /* round 2 answer → harder */
+      {delay:1000, text:()=>'嗯嗯，说得很具体。再问一个：长沙夏天热起来的时候，你一般怎么扛过去的？有没有什么本地人都知道的避暑方式或者去处？'},
+      /* round 3 answer → culture/vibe check */
+      {delay:1100, text:()=>'哈哈有本地人的味道了 😄 最后一个：你觉得长沙这座城市最让你上头的一点是什么？不用想太多，随便说'},
+      /* round 4 answer → verdict */
+    ];
+
+    function scrollChat(){setTimeout(()=>{if(chatScroll.value)chatScroll.value.scrollTop=chatScroll.value.scrollHeight},50)}
+
+    function addAiMsg(text,opts){
+      const t=typeof text==='function'?text():text;
+      chatMessages.value.push({role:'ai',text:t,...(opts||{})});
+      scrollChat();
+    }
+
+    function aiSend(scriptIdx){
+      const item=aiScript[scriptIdx];
+      if(!item)return;
+      aiTyping.value=true;
+      scrollChat();
+      setTimeout(()=>{
+        aiTyping.value=false;
+        addAiMsg(item.text);
+      },item.delay);
+    }
+
+    function startChat(){
+      chatMessages.value=[];chatRound.value=0;chatDone.value=false;chatInput.value='';
+      /* Send first 2 AI messages (greeting + first question) */
+      aiTyping.value=true;
+      scrollChat();
+      setTimeout(()=>{
+        aiTyping.value=false;
+        addAiMsg(aiScript[0].text);
+        setTimeout(()=>{
+          aiTyping.value=true;
+          scrollChat();
+          setTimeout(()=>{
+            aiTyping.value=false;
+            addAiMsg(aiScript[1].text);
+            chatRound.value=1;
+          },aiScript[1].delay);
+        },400);
+      },aiScript[0].delay);
+    }
+
+    function sendChat(){
+      const msg=chatInput.value.trim();
+      if(!msg||aiTyping.value||chatDone.value)return;
+      chatMessages.value.push({role:'user',text:msg});
+      chatInput.value='';
+      chatRound.value++;
+      scrollChat();
+
+      /* chatRound starts at 1 (set by startChat after first question)
+         User msg 1 → chatRound=2, send aiScript[2]
+         User msg 2 → chatRound=3, send aiScript[3]
+         User msg 3 → chatRound=4, send aiScript[4]
+         User msg 4 → chatRound=5, show verdict */
+      if(chatRound.value>=5){
+        aiTyping.value=true;
+        scrollChat();
+        setTimeout(()=>{
+          aiTyping.value=false;
+          const verdictText='经过 4 轮对话分析，你对长沙的街道、交通、饮食习惯和城市文化都展现出了高度真实的在地体验。AI 综合判定：你是一位真正的长沙本地人。';
+          chatMessages.value.push({role:'ai',text:verdictText,verdict:true});
+          chatDone.value=true;
+          scrollChat();
+        },1800);
+      } else {
+        const idx=chatRound.value; /* 2→aiScript[2], 3→aiScript[3], 4→aiScript[4] */
+        if(idx<aiScript.length){
+          aiTyping.value=true;
+          scrollChat();
+          setTimeout(()=>{
+            aiTyping.value=false;
+            const t=typeof aiScript[idx].text==='function'?aiScript[idx].text():aiScript[idx].text;
+            addAiMsg(t);
+          },aiScript[idx].delay);
+        }
+      }
+    }
+
+    function goStep(s){
+      transitioning.value=true;
+      setTimeout(()=>{
+        step.value=s;transitioning.value=false;
+        if(s==='verify')setTimeout(startChat,200);
+      },180);
+    }
+    function goBack(){
+      if(step.value==='login') goStep('demo');
+      else if(step.value==='profile') goStep('login');
+      else if(step.value==='verify') goStep('profile');
+    }
+    function submitLogin(){if(!loginReady.value)return;goStep('profile')}
+    function fillTest(){phone.value='13800138000';code.value='123456'}
+    function goVerify(){if(!profileReady.value)return;goStep('verify')}
+    function submitVerify(){
+      goStep('main');tab.value='cards';
+      setTimeout(()=>{showToast.value=true;setTimeout(()=>{showToast.value=false},3200)},400);
+    }
+    function devReset(){step.value='welcome';tab.value='cards';phone.value=code.value=nickname.value=gender.value=ageRange.value=years.value=district.value=places.value='';chatMessages.value=[];chatRound.value=0;chatDone.value=false;chatInput.value='';demoSwiped.value=0;dci.value=0;showToast.value=false;showInvite.value=false;showGuarantee.value=false;inviteCount.value=3}
+
+    /* ── Demo cards (pre-login teaser, curated 3+1) ── */
+    const demoCards=[
+      {id:1,shopName:'壹盏灯',area:'南门口',hook:'深巷里的湘菜馆，没招牌没装修，但辣椒炒肉能让你想起外婆家的味道。',recommender:'南门口李哥',years:25,badge:'天心区元老',tags:['湘菜控','深巷猎人'],distance:'1.2km',img:'https://images.unsplash.com/photo-1555126634-323283e090fa?w=600&h=400&fit=crop'},
+      {id:2,shopName:'黑色经典臭豆腐',area:'坡子街',hook:'游客都排那家连锁的，本地人只来这家。外酥里嫩，蒜泥酱才是灵魂。',recommender:'岳麓山人',years:8,badge:'河西老饕',tags:['小吃达人','街头美食'],distance:'800m',img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop'},
+      {id:3,shopName:'茶颜悦色·概念店',area:'五一广场',hook:'幽兰拿铁永远的神。外地奶茶跟这比就是刷锅水，不接受反驳。',recommender:'奶茶妹',years:6,badge:'芙蓉区通',tags:['奶茶专家','甜党'],distance:'2.1km',img:'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop'},
+      {id:4,shopName:'文和友老长沙龙虾馆',area:'海信广场',hook:'来长沙不吃这家龙虾等于白来。口味虾必点。',recommender:'芙蓉姐',years:15,badge:'长沙土著',tags:['夜宵王'],distance:'3.4km',img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop'},
+    ];
+    const dci=ref(0), demoSwiped=ref(0);
+    const demoCurCard=computed(()=>demoCards[dci.value%demoCards.length]);
+    const demoNextCard=computed(()=>demoCards[(dci.value+1)%demoCards.length]);
+
+    const dSwX=ref(0),dSwY=ref(0),dSwiping=ref(false),dSX=ref(0),dSY=ref(0),dSwDec=ref(''),dLeaving=ref('');
+    function dAdvance(){dci.value++;demoSwiped.value++;dLeaving.value='';dSwX.value=0;dSwY.value=0;dSwDec.value=''}
+    function dOnTS(e){dSwiping.value=true;dSX.value=e.touches[0].clientX;dSY.value=e.touches[0].clientY;dSwX.value=0;dSwY.value=0;dSwDec.value=''}
+    function dOnTM(e){if(!dSwiping.value)return;dSwX.value=e.touches[0].clientX-dSX.value;dSwY.value=(e.touches[0].clientY-dSY.value)*.3;dSwDec.value=dSwX.value>50?'like':dSwX.value<-50?'nope':''}
+    function dOnTE(){dSwiping.value=false;if(Math.abs(dSwX.value)>100){dLeaving.value=dSwX.value>0?'right':'left';setTimeout(dAdvance,280)}else{dSwX.value=0;dSwY.value=0;dSwDec.value=''}}
+    function dOnMD(e){dSwiping.value=true;dSX.value=e.clientX;dSY.value=e.clientY;dSwX.value=0;dSwY.value=0;dSwDec.value='';document.addEventListener('mousemove',dOnMM);document.addEventListener('mouseup',dOnMU)}
+    function dOnMM(e){if(!dSwiping.value)return;dSwX.value=e.clientX-dSX.value;dSwY.value=(e.clientY-dSY.value)*.3;dSwDec.value=dSwX.value>50?'like':dSwX.value<-50?'nope':''}
+    function dOnMU(){document.removeEventListener('mousemove',dOnMM);document.removeEventListener('mouseup',dOnMU);dOnTE()}
+    function demoBtnSw(dir){dSwX.value=dir==='right'?160:-160;dSwDec.value=dir==='right'?'like':'nope';dLeaving.value=dir==='right'?'right':'left';setTimeout(dAdvance,320)}
+    const demoCardStyle=computed(()=>{
+      if(dLeaving.value==='right')return{transform:'translateX(120%) rotate(18deg)',opacity:'0',transition:'all .28s ease-out'};
+      if(dLeaving.value==='left')return{transform:'translateX(-120%) rotate(-18deg)',opacity:'0',transition:'all .28s ease-out'};
+      if(!dSwX.value&&!dSwY.value)return{transform:'none',transition:'transform .22s ease,opacity .22s ease'};
+      const r=dSwX.value*.06;
+      return{transform:`translate(${dSwX.value}px,${dSwY.value}px) rotate(${r}deg)`,transition:dSwiping.value?'none':'transform .22s ease,opacity .22s ease'}
+    });
+
+    /* ── Main app cards (with referredBy + socialProof) ── */
+    const cards=[
+      {id:1,shopName:'龙记米粉',area:'香蜜湖',hook:'老板脸臭，但牛肉粉全深圳前三。汤底是真骨熬的，不是粉剂冲的。',recommender:'老王',years:20,badge:'深圳老炮',referredBy:'芙蓉姐',tags:['湖南胃','粉面专家'],distance:'1.2km',img:'https://images.unsplash.com/photo-1555126634-323283e090fa?w=600&h=400&fit=crop',
+        socialProof:{people:['奶茶妹','岳麓山人'],text:'奶茶妹、岳麓山人 也觉得不错'}},
+      {id:2,shopName:'文和友老长沙龙虾馆',area:'海信广场',hook:'来长沙不吃这家龙虾等于白来。口味虾必点，麻辣是灵魂。',recommender:'芙蓉姐',years:15,badge:'长沙土著',referredBy:'南门口李哥',tags:['夜宵王','辣不怕'],distance:'800m',img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop',
+        socialProof:{people:['南门口李哥','老王','奶茶妹'],text:'你信任的 3 位本地人都收藏了'}},
+      {id:3,shopName:'黑色经典臭豆腐',area:'坡子街',hook:'游客都排那家，本地人只来这家。外酥里嫩，蒜泥酱是灵魂。',recommender:'岳麓山人',years:8,badge:'河西老饕',referredBy:'奶茶妹',tags:['小吃达人','街头美食'],distance:'2.1km',img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop',
+        socialProof:{people:['芙蓉姐'],text:'芙蓉姐 也觉得不错'}},
+      {id:4,shopName:'壹盏灯',area:'南门口',hook:'深巷里的湘菜馆，没招牌没装修，但辣椒炒肉能让你想起外婆家。',recommender:'南门口李哥',years:25,badge:'天心区元老',referredBy:'老王',tags:['湘菜控','深巷猎人'],distance:'3.4km',img:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop',
+        socialProof:{people:[],text:'18 位本地人收藏'}},
+      {id:5,shopName:'茶颜悦色',area:'五一广场',hook:'幽兰拿铁永远的神。外地奶茶跟这比就是刷锅水，不接受反驳。',recommender:'奶茶妹',years:6,badge:'芙蓉区通',referredBy:'岳麓山人',tags:['奶茶专家','甜党'],distance:'1.8km',img:'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop',
+        socialProof:{people:['岳麓山人','南门口李哥'],text:'岳麓山人、南门口李哥 也觉得不错'}},
+    ];
+    const ci=ref(0);
+    const curCard=computed(()=>cards[ci.value%cards.length]);
+    const nextCard=computed(()=>cards[(ci.value+1)%cards.length]);
+    const swX=ref(0),swY=ref(0),swiping=ref(false),sX=ref(0),sY=ref(0),swDec=ref(''),leaving=ref('');
+    function onTS(e){swiping.value=true;sX.value=e.touches[0].clientX;sY.value=e.touches[0].clientY;swX.value=0;swY.value=0;swDec.value=''}
+    function onTM(e){if(!swiping.value)return;swX.value=e.touches[0].clientX-sX.value;swY.value=(e.touches[0].clientY-sY.value)*.3;swDec.value=swX.value>50?'like':swX.value<-50?'nope':''}
+    function onTE(){swiping.value=false;if(Math.abs(swX.value)>100){leaving.value=swX.value>0?'right':'left';setTimeout(()=>{ci.value++;leaving.value='';swX.value=0;swY.value=0;swDec.value=''},280)}else{swX.value=0;swY.value=0;swDec.value=''}}
+    function onMD(e){swiping.value=true;sX.value=e.clientX;sY.value=e.clientY;swX.value=0;swY.value=0;swDec.value='';document.addEventListener('mousemove',onMM);document.addEventListener('mouseup',onMU)}
+    function onMM(e){if(!swiping.value)return;swX.value=e.clientX-sX.value;swY.value=(e.clientY-sY.value)*.3;swDec.value=swX.value>50?'like':swX.value<-50?'nope':''}
+    function onMU(){document.removeEventListener('mousemove',onMM);document.removeEventListener('mouseup',onMU);onTE()}
+    function btnSw(dir){swX.value=dir==='right'?160:-160;swDec.value=dir==='right'?'like':'nope';leaving.value=dir==='right'?'right':'left';setTimeout(()=>{ci.value++;leaving.value='';swX.value=0;swY.value=0;swDec.value=''},320)}
+    const cardStyle=computed(()=>{
+      if(leaving.value==='right')return{transform:'translateX(120%) rotate(18deg)',opacity:'0',transition:'all .28s ease-out'};
+      if(leaving.value==='left')return{transform:'translateX(-120%) rotate(-18deg)',opacity:'0',transition:'all .28s ease-out'};
+      if(!swX.value&&!swY.value)return{transform:'none',transition:'transform .22s ease,opacity .22s ease'};
+      const r=swX.value*.06;
+      return{transform:`translate(${swX.value}px,${swY.value}px) rotate(${r}deg)`,transition:swiping.value?'none':'transform .22s ease,opacity .22s ease'}
+    });
+
+    const pois=[
+      {name:'老王',years:20,badge:'深圳老炮',x:22,y:30,avatar:'👨‍🍳'},
+      {name:'芙蓉姐',years:15,badge:'长沙土著',x:62,y:42,avatar:'👩‍🍳'},
+      {name:'岳麓山人',years:8,badge:'河西老饕',x:38,y:65,avatar:'🧑‍🍳'},
+      {name:'南门口李哥',years:25,badge:'天心区元老',x:72,y:72,avatar:'👨'},
+      {name:'奶茶妹',years:6,badge:'芙蓉区通',x:48,y:25,avatar:'👩'},
+    ];
+
+    return{
+      step,transitioning,tab,phone,code,nickname,gender,ageRange,years,district,places,
+      loginReady,profileReady,referrer,
+      chatMessages,chatInput,chatRound,aiTyping,chatDone,chatScroll,chatPlaceholder,sendChat,
+      goStep,goBack,submitLogin,fillTest,goVerify,submitVerify,devReset,
+      demoCards,demoCurCard,demoNextCard,demoCardStyle,dSwDec,demoSwiped,dOnTS,dOnTM,dOnTE,dOnMD,demoBtnSw,
+      curCard,nextCard,cardStyle,swDec,onTS,onTM,onTE,onMD,btnSw,
+      pois,selPoi,
+      showToast,showInvite,showGuarantee,inviteCount,
+      myTrustCount,myRecommendCount,myCollectedCount,myReferrals,
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
