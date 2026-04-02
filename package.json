@@ -5,8 +5,8 @@
   "description": "本地人 App V0 H5 preview",
   "scripts": {
     "dev": "vite",
+    "sync:icon": "cp 本地人icon.jpeg public/本地人icon.jpeg",
     "build": "vite build",
-    "build:pages": "vite build && rm -rf docs/assets && cp dist/index.html dist/本地人icon.jpeg docs/ && cp -r dist/assets docs/",
     "preview": "vite preview"
   },
   "dependencies": {
